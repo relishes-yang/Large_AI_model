@@ -1,4 +1,4 @@
-greet = "您好，吃了么，"
+greet = "哎，吃了么，"
 greet_chinese = greet
 greet_english = "Yo what's up, "
 greet = greet_english
