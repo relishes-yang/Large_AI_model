@@ -5,7 +5,6 @@
 3. 返回计算出的BMI值
 
 BMI = 体重 / (身高 ** 2)
-
 BMI分类
 偏瘦：BMI <= 18.5
 正常：18.5 < BMI <= 25
@@ -14,7 +13,7 @@ BMI分类
 """
 
 def calculate_BMI(weight, height):
-    BMI = weight / height ** 2
+    BMI = weight / (height ** 2)
     if BMI <= 18.5:
         category = "偏瘦"
     elif BMI <= 25:
@@ -26,5 +25,5 @@ def calculate_BMI(weight, height):
     print(f"您的BMI分类为：{category}")
     return BMI
 
-result = calculate_BMI(1.8, 70)
+result = calculate_BMI(60,1.7 )
 print(result)
