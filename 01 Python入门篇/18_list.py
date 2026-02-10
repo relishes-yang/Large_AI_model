@@ -10,7 +10,7 @@ shopping_list.append("电竞椅")
 # 更改购物清单的第二个商品
 shopping_list[1] = "硬盘"
 
-# print(shopping_list)
+print(shopping_list)
 # print(len(shopping_list))
 # print(shopping_list[0])
 
