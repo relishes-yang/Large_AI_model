@@ -13,7 +13,6 @@ class student:
         if score in self.grades:
             self.grades[score] = grade
 
-
     def print_grade(self):
         print(f"学生{self.name} 学号：{self.student_id}的成绩为：")
         for score in self.grades:
