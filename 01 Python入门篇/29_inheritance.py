@@ -16,7 +16,7 @@ class Employee:
 
 class FullTimeEmployee(Employee):
     def __init__(self, name, id, monthly_salary):
-        super().__init__(name, id)
+        super().__init__(name, id)      # 调用父类的属性
         self.monthly_salary = monthly_salary
 
     def calculate_monthly_pay(self):
@@ -24,16 +24,17 @@ class FullTimeEmployee(Employee):
 
 class PartTimeEmployee(Employee):
     def __init__(self, name, id, daily_salary, work_days):
-        super().__init__(name, id)
+        super().__init__(name, id)      # 调用父类的属性
         self.daily_salary = daily_salary
         self.work_days = work_days
 
     def calculate_monthly_pay(self):
         return self.daily_salary * self.work_days
 
-zhangsan = FullTimeEmployee("张三", "1001", 6000)
-lisi = PartTimeEmployee("李四", "1002", 230, 15)
+
+zhangsan = FullTimeEmployee("张三", "1001", 6000)     # 全职员工
+lisi = PartTimeEmployee("李四", "1002", 230, 15)     # 兼职员工
 zhangsan.print_info()
+print(f"工资：{zhangsan.calculate_monthly_pay()}元")
 lisi.print_info()
-print(zhangsan.calculate_monthly_pay())
 print(lisi.calculate_monthly_pay())
