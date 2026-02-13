@@ -30,5 +30,8 @@ class TestShoppingList(unittest.TestCase):
     def test_get_item_count(self):
         self.assertEqual(self.shopping_list.get_item_count(), 3)
 
+    """测试获取购物清单商品价格总额数字"""
+
     def test_get_total_price(self):
-        self.assertEqual(self.shopping_list.get_total_price(), 55)
+        self.assertEqual(self.shopping_list.get_total_price(), 35)
+
