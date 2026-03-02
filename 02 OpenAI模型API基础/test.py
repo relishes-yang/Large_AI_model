@@ -1,4 +1,4 @@
-from qwen import Qwen
+
 
 # 创建Qwen模型实例
 model = Qwen(model="qwen-max")
