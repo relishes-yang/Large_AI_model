@@ -3,7 +3,7 @@
 """
 import os
 from dashscope import Generation
-import dashscope
+
 
 messages = [
     {'role': 'system', 'content': 'You are a helpful assistant.'},

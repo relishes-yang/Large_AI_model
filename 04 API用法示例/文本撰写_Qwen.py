@@ -2,11 +2,6 @@ import os
 import dashscope
 from dashscope import Generation
 
-# === 重要：请通过环境变量设置 API Key（不要写在代码里！）===
-# 1. 访问 https://dashscope.console.aliyun.com/apiKey 获取 API Key
-# 2. 设置环境变量（推荐方式）：
-#    Windows (PowerShell): $env:DASHSCOPE_API_KEY="sk-xxx"
-
 # 初始化 DashScope
 dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
 

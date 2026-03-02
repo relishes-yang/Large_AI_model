@@ -4,6 +4,13 @@ from dashscope import Generation
 
 # 初始化模型（使用 Qwen-Max，效果最强）
 dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
+import os
+
+# === 添加验证代码 ===
+print("API Key:", os.getenv("DASHSCOPE_API_KEY"))
+print("API Key length:", len(os.getenv("DASHSCOPE_API_KEY")))
+print("API Key starts with 'sk-':", os.getenv("DASHSCOPE_API_KEY", "").startswith("sk-"))
+# === 验证代码结束 ===
 
 
 def get_qwen_response(prompt, model="qwen-max"):
@@ -14,7 +21,7 @@ def get_qwen_response(prompt, model="qwen-max"):
     :return: 模型生成的文本
     """
     response = Generation.call(
-        model=model,
+        model="qwen-max",
         prompt=prompt,
         temperature=0.7,  # 控制生成随机性 (0-1)
         top_p=0.8,  # 采样概率阈值
