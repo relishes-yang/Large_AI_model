@@ -1,3 +1,6 @@
+"""
+视频教程使用的是openai国内无法使用，自己网上找的换用千问调用，需要在run中配置环境变量DASHSCOPE_API_KEY
+"""
 import os
 import dashscope
 from dashscope import Generation
@@ -6,7 +9,7 @@ from dashscope import Generation
 dashscope.api_key = os.getenv("DASHSCOPE_API_KEY")
 
 
-def get_qwen_response(system_prompt, user_prompt, model="qwen-max"):
+def get_qwen_response(system_prompt, user_prompt, model="qwen3.5-flash"):
     """
     使用通义千问模型生成回复（完全模拟 OpenAI 调用方式）
     :param system_prompt: 系统提示词（用于设定模型角色和规则）
@@ -20,9 +23,9 @@ def get_qwen_response(system_prompt, user_prompt, model="qwen-max"):
     response = Generation.call(
         model=model,
         prompt=full_prompt,
-        temperature=0.7,
-        top_p=0.8,
-        max_tokens=2048
+        temperature=0.7,    #ai回答的随机性
+        top_p=0.8,          # 采样概率
+        max_tokens=2048     # 最大max，到达直接截断
     )
 
     if response.status_code == 200:
@@ -79,7 +82,7 @@ xiaohongshu_system_prompt = """
 # 生成小红书文案
 response = get_qwen_response(
     system_prompt=xiaohongshu_system_prompt,
-    user_prompt="学英语",
+    user_prompt="怎么上好开学第一课",
     model="qwen-max"  # 选择效果最强的模型
 )
 

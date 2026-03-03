@@ -1,3 +1,6 @@
+"""
+视频教程使用的是openai国内无法使用，自己网上找的换用千问调用，需要在run中配置环境变量DASHSCOPE_API_KEY
+"""
 import os
 import dashscope
 from dashscope import Generation
