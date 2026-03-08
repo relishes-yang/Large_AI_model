@@ -1,6 +1,10 @@
 import streamlit as st
 
 tab1, tab2, tab3 = st.tabs(["性别", "联系方式", "喜好水果"])
+# 用户可以通过点击不同的选项卡来查看不同的内容，每个选项卡都是一个独立的容器，互不关联。
+# 选项卡的顺序和内容可以根据需要进行调整。
+
+
 with tab1:
     gender = st.radio("你的性别是什么？", ["男性", "女性", "跨性别"], index=None)
     if gender:
@@ -17,7 +21,7 @@ with tab3:
     for fruit in fruits:
         st.write(f"你选择的水果是{fruit}")
 
-with st.expander("身高信息"):
+with st.expander("身高信息"):       # 展开框
     height = st.slider("你的身高是多少厘米？", value=170, min_value=100, max_value=230, step=1)
     st.write(f"你的身高是{height}厘米")
 

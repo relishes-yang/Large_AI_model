@@ -1,11 +1,11 @@
 import streamlit as st
 
-with st.sidebar:
+with st.sidebar:        # 侧边栏
     name = st.text_input("请输入你的名字：")
     if name:
         st.write(f"你好，{name}")
 
-column1, column2, column3 = st.columns([1, 2, 3])
+column1, column2, column3 = st.columns([1, 2, 3])   # 返回三个列对象，用于并排按照比例显示内容
 with column1:
     password = st.text_input("请输入你的密码：", type="password")
 
