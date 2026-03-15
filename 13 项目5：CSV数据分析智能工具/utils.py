@@ -1,7 +1,6 @@
 import json
-from langchain_openai import ChatOpenAI
-from langchain_experimental.agents.agent_toolkits import create_pandas_dataframe_agent
-
+from langchain_community.llms import Qwen
+from langchain.agents.agent_toolkits import create_pandas_dataframe_agent
 
 PROMPT_TEMPLATE = """
 你是一位数据分析助手，你的回应内容取决于用户的请求内容。
@@ -31,16 +30,25 @@ PROMPT_TEMPLATE = """
 你要处理的用户请求如下： 
 """
 
-def dataframe_agent(openai_api_key, df, query):
-    model = ChatOpenAI(model="gpt-4-turbo",
-                       openai_api_key=openai_api_key,
-                       temperature=0)
-    agent = create_pandas_dataframe_agent(llm=model,
-                                          df=df,
-                                          agent_executor_kwargs={"handle_parsing_errors": True},
-                                          verbose=True)
+
+def dataframe_agent(dashscope_api_key, df, query, model="qwen-max", temperature=0.7, max_tokens=2048):
+    """使用通义千问API进行数据分析"""
+    model = Qwen(
+        model=model,
+        dashscope_api_key=dashscope_api_key,
+        temperature=temperature,
+        max_tokens=max_tokens
+    )
+
+    agent = create_pandas_dataframe_agent(
+        llm=model,
+        df=df,
+        agent_executor_kwargs={"handle_parsing_errors": True},
+        verbose=True
+    )
+
     prompt = PROMPT_TEMPLATE + query
     response = agent.invoke({"input": prompt})
+
     response_dict = json.loads(response["output"])
     return response_dict
-
