@@ -363,7 +363,8 @@ st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: gray; padding: 20px;'>"
     "Powered by OpenCV + Streamlit | 📸 AI 美颜照片处理工具<br>"
-    "支持 12 种图像处理功能 | 可多选 | 批量下载 | 智能布局"
+    "支持 12 种图像处理功能 | 可多选 | 批量下载 | 智能布局<br>"
+    "杨金伟 | 2026.3.20"
     "</div>",
     unsafe_allow_html=True
 )
