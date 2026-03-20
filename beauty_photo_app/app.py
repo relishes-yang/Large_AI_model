@@ -13,7 +13,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 自定义 CSS 样式
+# 自定义 CSS 样式 - 关键修改
 st.markdown("""
 <style>
     .stTooltipContent {
@@ -25,6 +25,39 @@ st.markdown("""
         border-radius: 10px;
         background-color: #f0f2f6;
         margin: 5px;
+        text-align: center;
+    }
+    /* 统一图片容器样式 - 关键修复 */
+    .result-image-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 320px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #e0e0e0;
+    }
+    .result-image-container img {
+        max-width: 100%;
+        max-height: 300px;
+        object-fit: contain;
+    }
+    /* 结果卡片样式 */
+    .result-card {
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 5px;
+        background-color: white;
+    }
+    /* 标题样式 */
+    .result-title {
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-size: 16px;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -48,10 +81,28 @@ with st.sidebar:
     """)
 
     st.header("⚙️ 参数设置")
-    ksize = st.slider("滤波核大小 (奇数)", 3, 15, 5, step=2)
-    sigma = st.slider("Sigma 强度值", 10, 100, 50)
 
-# 滤镜功能定义（已修复数据类型问题）
+    # 参数设置添加悬停说明
+    ksize = st.slider(
+        "滤波核大小 (奇数)",
+        min_value=3,
+        max_value=15,
+        value=5,
+        step=2,
+        help="📐 控制滤波器的邻域大小。\n\n• 数值越小：细节保留越多，去噪效果弱\n• 数值越大：平滑效果越强，细节损失多\n\n⚠️ 必须是奇数（3,5,7,9,11,13,15）"
+    )
+
+    sigma = st.slider(
+        "Sigma 强度值",
+        min_value=10,
+        max_value=100,
+        value=50,
+        help="🎯 控制滤波的强度参数。\n\n• 数值越小：处理效果轻微\n• 数值越大：处理效果明显\n\n💡 适用于高斯滤波、双边滤波等"
+    )
+
+    st.info("💡 提示：不同滤镜对参数敏感度不同，建议多尝试找到最佳效果")
+
+# 滤镜功能定义
 FILTER_OPTIONS = {
     "mean": {
         "name": "🌟 均值滤波",
@@ -66,7 +117,7 @@ FILTER_OPTIONS = {
     "gaussian": {
         "name": "🌸 高斯滤波",
         "desc": "使用高斯分布加权平均，中心权重高，边缘权重低。比均值滤波更好地保留细节。",
-        "func": lambda img, k, s: cv2.GaussianBlur(img, (k, k), sigmaX=s)
+        "func": lambda img, k, s: cv2.GaussianBlur(img, (k, k), sigmaX=s / 10)
     },
     "median": {
         "name": "🧹 中值滤波",
@@ -78,14 +129,9 @@ FILTER_OPTIONS = {
         "desc": "非线性滤波，既能去噪又能保留边缘。适合人像磨皮，不会模糊五官轮廓。",
         "func": lambda img, k, s: cv2.bilateralFilter(img, d=k, sigmaColor=s, sigmaSpace=s)
     },
-    "laplacian": {
+    "laplacian_sharpen": {
         "name": "🔍 拉普拉斯锐化",
         "desc": "增强图像边缘和细节，使图片更清晰。适合处理模糊照片。",
-        "func": lambda img, k, s: cv2.convertScaleAbs(cv2.Laplacian(img, cv2.CV_64F))
-    },
-    "laplacian_sharpen": {
-        "name": "⚡ 拉普拉斯锐化增强",
-        "desc": "将拉普拉斯边缘叠加回原图，增强细节同时保留原图信息。修复了数据类型问题。",
         "func": lambda img, k, s: np.clip(img.astype(np.float32) - cv2.Laplacian(img, cv2.CV_64F), 0, 255).astype(
             np.uint8)
     },
@@ -118,7 +164,8 @@ FILTER_OPTIONS = {
     "histogram": {
         "name": "📊 直方图均衡化",
         "desc": "增强图像对比度，使暗部更亮、亮部更暗，细节更丰富。",
-        "func": lambda img, k, s: cv2.convertScaleAbs(cv2.equalizeHist(cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:, :, 0]))
+        "func": lambda img, k, s: cv2.cvtColor(cv2.equalizeHist(cv2.cvtColor(img, cv2.COLOR_BGR2YUV)[:, :, 0]),
+                                               cv2.COLOR_GRAY2BGR)
     }
 }
 
@@ -137,14 +184,11 @@ def apply_filters(img, selected_filters, ksize, sigma):
         filter_info = FILTER_OPTIONS[filter_key]
         try:
             if filter_key == "warm":
-                result = img.copy()
-                # 修复：增加红色通道，确保数据类型正确
-                result = result.astype(np.int16)
+                result = img.copy().astype(np.int16)
                 result[:, :, 2] = np.clip(result[:, :, 2] + 30, 0, 255)
                 result = result.astype(np.uint8)
 
             elif filter_key == "histogram":
-                # 修复：直方图均衡化需要正确处理通道
                 yuv = cv2.cvtColor(img, cv2.COLOR_BGR2YUV)
                 yuv[:, :, 0] = cv2.equalizeHist(yuv[:, :, 0])
                 result = cv2.cvtColor(yuv, cv2.COLOR_YUV2BGR)
@@ -187,6 +231,46 @@ def create_download_bytes(cv2_img, format='jpg'):
     return buffer.tobytes()
 
 
+def calculate_layout(num_images):
+    """
+    智能计算图片布局
+    规则：
+    - 4 张以内：1 行
+    - 超过 4 张：自动分行
+    - 奇数张：上大下小（如 5 张=上 3 下 2）
+    """
+    if num_images <= 4:
+        return [num_images]  # 单行
+    elif num_images == 5:
+        return [3, 2]  # 上 3 下 2
+    elif num_images == 6:
+        return [3, 3]  # 2 行 3 列
+    elif num_images == 7:
+        return [4, 3]  # 上 4 下 3
+    elif num_images == 8:
+        return [4, 4]  # 2 行 4 列
+    elif num_images == 9:
+        return [3, 3, 3]  # 3 行 3 列
+    elif num_images == 10:
+        return [4, 3, 3]  # 上 4 中 3 下 3
+    elif num_images == 11:
+        return [4, 4, 3]  # 上 4 中 4 下 3
+    elif num_images == 12:
+        return [4, 4, 4]  # 3 行 4 列
+    else:
+        # 更多图片，每行最多 4 个
+        rows = []
+        remaining = num_images
+        while remaining > 0:
+            if remaining >= 4:
+                rows.append(4)
+                remaining -= 4
+            else:
+                rows.append(remaining)
+                remaining = 0
+        return rows
+
+
 # 主界面
 st.header("📤 步骤 1: 上传图片")
 uploaded_file = st.file_uploader(
@@ -199,15 +283,17 @@ if uploaded_file is not None:
     # 加载原图
     original_img = load_image(uploaded_file)
 
-    # 显示原图
-    col_orig, col_info = st.columns([1, 5]) # 返回三个列对象，用于并排按照比例显示内容，第一个参数是列的比例，第二个参数是列的比例
+    # 显示原图 - 调整大小
+    st.subheader("📷 原图")
+    col_orig, col_info = st.columns([2, 1])
     with col_orig:
-        st.subheader("📷 原图")
-        st.image(cv2_to_pil(original_img), use_container_width=True)
+        # 使用固定宽度显示原图
+        st.image(cv2_to_pil(original_img), width=500, use_container_width=False)
     with col_info:
         st.metric("宽度", f"{original_img.shape[1]} px")
         st.metric("高度", f"{original_img.shape[0]} px")
         st.metric("通道", f"{original_img.shape[2] if len(original_img.shape) > 2 else 1}")
+        st.info("💡 原图已缩小显示，处理时使用原始分辨率")
 
     st.markdown("---")
 
@@ -231,7 +317,6 @@ if uploaded_file is not None:
                 with col:
                     with st.container():
                         st.markdown(f"<div class='filter-card'>", unsafe_allow_html=True)
-                        # 使用 tooltip 显示说明
                         selected = st.checkbox(
                             FILTER_OPTIONS[key]["name"],
                             key=f"filter_{key}",
@@ -255,30 +340,45 @@ if uploaded_file is not None:
                 st.markdown("---")
                 st.header("📊 步骤 3: 查看处理结果")
 
-                # 计算网格布局（最多 4 列）
+                # 计算智能布局
                 num_results = len(results)
-                cols_per_row = min(4, num_results)
-                num_rows = (num_results + cols_per_row - 1) // cols_per_row
+                layout = calculate_layout(num_results)
 
-                # 显示结果网格
-                for row in range(num_rows):
-                    cols = st.columns(cols_per_row)
+                st.info(f"📐 当前布局：{num_results} 张图片，共 {len(layout)} 行，每行数量：{layout}")
+
+                # 按布局显示结果
+                result_idx = 0
+                for row_num, cols_in_row in enumerate(layout):
+                    cols = st.columns(cols_in_row)
                     for col_idx, col in enumerate(cols):
-                        result_idx = row * cols_per_row + col_idx
                         if result_idx < num_results:
                             with col:
                                 result = results[result_idx]
-                                st.subheader(result["name"])
-                                st.image(cv2_to_pil(result["image"]), use_container_width=True)
+                                # 使用统一的卡片样式
+                                st.markdown(f"""
+                                <div class="result-card">
+                                    <div class="result-title">{result["name"]}</div>
+                                    <div class="result-image-container">
+                                """, unsafe_allow_html=True)
+
+                                st.image(
+                                    cv2_to_pil(result["image"]),
+                                    use_container_width=True
+                                )
+
+                                st.markdown("</div></div>", unsafe_allow_html=True)
+
                                 with st.expander("📖 功能说明"):
                                     st.write(result["desc"])
+
+                                result_idx += 1
 
                 st.markdown("---")
                 st.header("📥 步骤 4: 下载结果")
 
                 # 单个下载
                 st.subheader("单独下载")
-                download_cols = st.columns(min(3, len(results)))
+                download_cols = st.columns(min(4, len(results)))
                 for idx, result in enumerate(results):
                     with download_cols[idx % len(download_cols)]:
                         download_bytes = create_download_bytes(result["image"])
@@ -288,7 +388,8 @@ if uploaded_file is not None:
                             data=download_bytes,
                             file_name=f"{result['name']}_{timestamp}.jpg",
                             mime="image/jpeg",
-                            key=f"download_{result['key']}"
+                            key=f"download_{result['key']}",
+                            use_container_width=True
                         )
 
                 # 批量下载（打包）
@@ -309,7 +410,8 @@ if uploaded_file is not None:
                     data=zip_buffer,
                     file_name=f"美颜处理结果_{timestamp}.zip",
                     mime="application/zip",
-                    type="primary"
+                    type="primary",
+                    use_container_width=True
                 )
 
                 st.success(f"✅ 处理完成！共生成 {len(results)} 张图片。")
@@ -323,7 +425,7 @@ st.markdown("---")
 st.markdown(
     "<div style='text-align: center; color: gray; padding: 20px;'>"
     "Powered by OpenCV + Streamlit | 📸 AI 美颜照片处理工具<br>"
-    "支持 13 种图像处理功能 | 可多选 | 批量下载"
+    "支持 12 种图像处理功能 | 可多选 | 批量下载 | 智能布局"
     "</div>",
     unsafe_allow_html=True
 )
